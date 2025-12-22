@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini‑Mi | Genera tu figura 3D</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+  <h1>Mini‑Mi | Genera tu figura 3D desde una foto</h1>
+
+  <!-- Subir foto -->
+  <input type="file" id="foto" accept="image/png, image/jpeg">
+  <button onclick="procesarFoto()">Generar Mini‑Mi 3D</button>
+  <p id="estado"></p>
+
+  <!-- Visor 3D -->
+  <model-viewer id="visor" src="" alt="Mini‑Mi 3D"
+                auto-rotate camera-controls
+                style="width: 100%; height: 400px; background: #eee;">
+  </model-viewer>
+
+  <script>
+  async function procesarFoto() {
+  const estado = document.getElementById("estado");
+  const fileInput = document.getElementById("foto");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    estado.textContent = "Por favor sube una foto.";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("foto", file);
+
+  estado.textContent = "Procesando foto...";
+
+  const response = await fetch("http://localhost:3000/api/reconstruct", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await response.json();
+  if (data.success) {
+    estado.textContent = "¡Modelo 3D generado con éxito!";
+    document.getElementById("visor").src = data.modelUrl;
+  } else {
+    estado.textContent = "Error al generar el modelo.";
+  }
+}
+  </script>
+</body>
+</html>
