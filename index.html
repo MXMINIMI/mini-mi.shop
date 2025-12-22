@@ -519,6 +519,37 @@
       figure.appendChild(label);
       viewer.appendChild(figure);
     }
-  </script>
+    </script>
+  <input type="file" id="foto" accept="image/png, image/jpeg">
+<button onclick="procesarFoto()">Opcion 2 Generar Mini‑Mi 3D</button>
+<p id="estado"></p>
+<script>
+function procesarFoto() {
+  const estado = document.getElementById("estado");
+  estado.textContent = "Procesando foto...";
+
+  // Simulación de espera
+  setTimeout(() => {
+    estado.textContent = "¡Modelo 3D generado con éxito!";
+    mostrarModelo();
+  }, 2000);
+}
+</script>
+<!-- Importa la librería -->
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+<!-- Contenedor del visor -->
+<model-viewer id="visor" src="" alt="Mini‑Mi 3D"
+              auto-rotate camera-controls
+              style="width: 100%; height: 400px; background: #eee;">
+</model-viewer>
+
+<script>
+function mostrarModelo() {
+  const visor = document.getElementById("visor");
+  // Aquí pondrías la URL real del modelo generado (ej. .glb)
+  visor.src = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
+}
+</script>
 </body>
 </html>
