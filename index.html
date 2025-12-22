@@ -1,24 +1,524 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mini-Mi Shop</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini‑Mi | Genera tu modelo 3D desde una foto</title>
   <style>
-    body { font-family: Arial; text-align: center; background: #f9f9f9; }
-    .producto { margin: 20px; padding: 10px; background: #fff; border: 1px solid #ccc; display: inline-block; }
-    img { width: 200px; }
-    a { color: #0077cc; font-weight: bold; text-decoration: none; }
+    :root {
+      --bg: #0f1216;
+      --card: #171b21;
+      --accent: #5c9dff;
+      --accent-2: #9c6dff;
+      --text: #e7ecf3;
+      --muted: #a8b2c1;
+      --success: #3ecf8e;
+      --danger: #ff6b6b;
+      --border: #242a33;
+    }
+    html, body {
+      height: 100%;
+      background: linear-gradient(180deg, #0f1216 0%, #11151a 100%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      margin: 0;
+    }
+    header {
+      max-width: 1040px;
+      margin: 32px auto 16px;
+      padding: 0 16px;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      margin: 0 0 8px;
+      letter-spacing: 0.2px;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .container {
+      max-width: 1040px;
+      margin: 0 auto 64px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .card header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      margin: 0;
+    }
+    .card header h2 {
+      font-size: 1rem;
+      margin: 0;
+    }
+    .card .content {
+      padding: 16px;
+    }
+
+    /* Uploader */
+    .uploader {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .dropzone {
+      position: relative;
+      border: 2px dashed #2a3240;
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      background: #141820;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .dropzone:hover {
+      border-color: var(--accent);
+      background: #131722;
+    }
+    .dropzone.dragover {
+      border-color: var(--accent-2);
+      background: #121623;
+    }
+    .dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .preview {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: #12161c;
+    }
+    .preview img {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #2b3340;
+      background: #10141a;
+    }
+    .file-meta {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .remove-btn {
+      background: none;
+      border: 1px solid #2f3745;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .remove-btn:hover {
+      color: #d7deea;
+      border-color: #3b4557;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.05s ease, filter 0.2s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: #0c0f14;
+      box-shadow: 0 6px 20px rgba(100, 140, 255, 0.25);
+    }
+    .btn-secondary {
+      background: #1a2029;
+      color: var(--text);
+      border: 1px solid #2a3240;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.2);
+    }
+
+    /* Progress */
+    .progress {
+      margin-top: 14px;
+      background: #12161c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+      transition: width 0.2s ease;
+    }
+    .status {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .status.success { color: var(--success); }
+    .status.error { color: var(--danger); }
+
+    /* Viewer */
+    .viewer {
+      height: 460px;
+      background:
+        radial-gradient(120px 60px at 20% 20%, #1d222b 0%, transparent 60%),
+        radial-gradient(120px 60px at 80% 30%, #1a2028 0%, transparent 60%),
+        #12161c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .viewer .placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      padding: 16px;
+      text-align: center;
+    }
+    .viewer .badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: #161b22;
+      border: 1px solid #2a3240;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+    .viewer .stage {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 140px;
+      background: linear-gradient(180deg, rgba(23, 27, 33, 0) 0%, rgba(23, 27, 33, 0.8) 60%, rgba(23, 27, 33, 1) 100%);
+      border-top: 1px solid #222836;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    /* Footer help */
+    .help {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .help code {
+      background: #0f1319;
+      border: 1px solid #222836;
+      border-radius: 6px;
+      padding: 2px 6px;
+      color: #cfe2ff;
+    }
+
+    @media (max-width: 980px) {
+      .container { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <h1>Bienvenido a Mini-Mi Shop</h1>
-  <p>Figuras personalizadas únicas para regalar o coleccionar</p>
+  <header>
+    <h1>Mini‑Mi | Sube tu foto y genera tu figura 3D</h1>
+    <p>Sube una fotografía y simularemos la reconstrucción 3D para previsualizar tu Mini‑Mi antes de imprimir.</p>
+  </header>
 
-  <div class="producto">
-    <img src="URL-de-tu-mini-mi.png" alt="Mini-Mi ejemplo">
-    <p>Mini-Mi Quinceañera</p>
-    <a href="https://www.amazon.com.mx/tu-producto">Comprar en Amazon</a><br>
-    <a href="https://www.mercadolibre.com.mx/tu-producto">Comprar en Mercado Libre</a>
-  </div>
+  <main class="container">
+    <!-- Panel izquierdo: subida y acciones -->
+    <section class="card">
+      <header><h2>Fotografía</h2></header>
+      <div class="content">
+        <div class="uploader">
+          <label class="dropzone" id="dropzone">
+            <strong>Arrastra y suelta tu foto aquí</strong><br />
+            o haz clic para seleccionar un archivo
+            <input type="file" id="fileInput" accept="image/png, image/jpeg" aria-label="Seleccionar fotografía" />
+          </label>
+          <p class="hint">Formatos admitidos: JPG, PNG. Tamaño recomendado: rostro centrado, buena iluminación.</p>
+
+          <div class="preview" id="preview" style="display:none;">
+            <img id="previewImg" alt="Vista previa de la fotografía" />
+            <div class="file-meta" id="fileMeta"></div>
+            <button class="remove-btn" id="removeBtn" type="button">Quitar</button>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="generateBtn" type="button" disabled>Generar Mini‑Mi 3D</button>
+            <button class="btn btn-secondary" id="resetBtn" type="button">Reset</button>
+          </div>
+
+          <div class="progress" aria-label="Progreso de procesamiento" style="display:none;">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="status" id="statusText" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel derecho: visor 3D -->
+    <section class="card">
+      <header><h2>Visor 3D</h2></header>
+      <div class="content">
+        <div class="viewer" id="viewer">
+          <div class="badge">Visor</div>
+          <div class="placeholder" id="viewerPlaceholder">
+            <div>
+              <div style="font-weight:600; margin-bottom:6px;">Modelo 3D pendiente</div>
+              <div>Cuando se complete la generación, aquí podrás rotar y acercar tu Mini‑Mi.</div>
+            </div>
+          </div>
+          <div class="stage">Sugerencia: sube una foto frontal con fondo simple para mejores resultados.</div>
+        </div>
+        <div class="help">
+          <p><strong>Integración real:</strong> reemplaza la función <code>mockGenerate3D()</code> por una llamada a tu API (por ejemplo <code>POST /api/reconstruct</code>) que devuelva la URL de un modelo <code>.glb</code> o <code>.gltf</code>.</p>
+          <p>Para un visor interactivo, puedes integrar <code>&lt;model-viewer&gt;</code> o <code>three.js</code> y cargar el modelo resultante.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const previewImg = document.getElementById('previewImg');
+    const fileMeta = document.getElementById('fileMeta');
+    const removeBtn = document.getElementById('removeBtn');
+    const generateBtn = document.getElementById('generateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+    const viewer = document.getElementById('viewer');
+    const viewerPlaceholder = document.getElementById('viewerPlaceholder');
+
+    // Estado
+    let selectedFile = null;
+    let generating = false;
+
+    // Drag & drop
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      const file = e.dataTransfer.files?.[0];
+      if (file) handleFile(file);
+    });
+
+    // Selección por clic
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) handleFile(file);
+    });
+
+    // Quitar archivo
+    removeBtn.addEventListener('click', () => {
+      resetFile();
+    });
+
+    // Reset general
+    resetBtn.addEventListener('click', () => {
+      resetAll();
+    });
+
+    // Generar (simulado)
+    generateBtn.addEventListener('click', async () => {
+      if (!selectedFile || generating) return;
+      generating = true;
+      toggleUI(false);
+      status('Procesando foto…', 'info');
+      showProgress(true);
+
+      try {
+        const result = await mockGenerate3D(selectedFile, (p) => setProgress(p));
+        status('Generación completa ✅ Cargando visor…', 'success');
+        await renderMockViewer(result);
+        status('Listo. Ajusta ángulo y zoom para revisar tu Mini‑Mi.', 'success');
+      } catch (err) {
+        console.error(err);
+        status('Error al generar el modelo. Inténtalo de nuevo.', 'error');
+      } finally {
+        generating = false;
+        toggleUI(true);
+        showProgress(false);
+        setProgress(0);
+      }
+    });
+
+    // Helpers
+    function handleFile(file) {
+      if (!/^image\/(png|jpe?g)$/i.test(file.type)) {
+        status('Formato no admitido. Sube JPG o PNG.', 'error');
+        return;
+      }
+      selectedFile = file;
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      preview.style.display = 'grid';
+      fileMeta.textContent = `${file.name} • ${(file.size/1024/1024).toFixed(2)} MB`;
+      generateBtn.disabled = false;
+      status('Foto lista. Haz clic en “Generar Mini‑Mi 3D”.', 'info');
+    }
+
+    function resetFile() {
+      selectedFile = null;
+      previewImg.src = '';
+      preview.style.display = 'none';
+      fileInput.value = '';
+      generateBtn.disabled = true;
+      status('Foto eliminada. Sube otra para continuar.', 'info');
+    }
+
+    function resetAll() {
+      resetFile();
+      statusText.textContent = '';
+      viewerPlaceholder.style.display = 'grid';
+      // Limpia cualquier mock anterior
+      const old = viewer.querySelector('.mock-figure');
+      if (old) old.remove();
+    }
+
+    function status(message, type='info') {
+      statusText.classList.remove('success', 'error');
+      if (type === 'success') statusText.classList.add('success');
+      if (type === 'error') statusText.classList.add('error');
+      statusText.textContent = message;
+    }
+
+    function showProgress(show) {
+      const node = progressBar.parentElement;
+      node.style.display = show ? 'block' : 'none';
+    }
+
+    function setProgress(pct) {
+      progressBar.style.width = `${pct}%`;
+    }
+
+    function toggleUI(enable) {
+      generateBtn.disabled = !enable || !selectedFile;
+      removeBtn.disabled = !enable;
+      resetBtn.disabled = !enable;
+      fileInput.disabled = !enable;
+    }
+
+    // Simula una llamada al backend que procesa la foto y devuelve un "modelo"
+    function mockGenerate3D(file, onProgress) {
+      return new Promise((resolve) => {
+        let p = 0;
+        const timer = setInterval(() => {
+          p += Math.random() * 18; // progreso irregular
+          if (p >= 100) {
+            p = 100;
+            clearInterval(timer);
+            // Resultado simulado: datos del "modelo"
+            resolve({
+              id: 'mock-' + Date.now(),
+              name: file.name.replace(/\.[^.]+$/, '') + '_MiniMi',
+              // En integración real, aquí recibes una URL GLB/GLTF para el visor
+              glbUrl: null
+            });
+          }
+          onProgress(Math.floor(p));
+        }, 260);
+      });
+    }
+
+    // Renderiza una figura mock en el visor (sustituye por tu visor real con model-viewer/three.js)
+    async function renderMockViewer(model) {
+      // Limpia placeholder
+      viewerPlaceholder.style.display = 'none';
+      // Elimina mock anterior
+      const old = viewer.querySelector('.mock-figure');
+      if (old) old.remove();
+
+      // Crea un “modelo” estilizado simple (placeholder)
+      const figure = document.createElement('div');
+      figure.className = 'mock-figure';
+      figure.style.position = 'absolute';
+      figure.style.inset = '0';
+      figure.style.pointerEvents = 'none';
+
+      // Partes: cabeza y cuerpo como formas básicas
+      const head = document.createElement('div');
+      head.style.position = 'absolute';
+      head.style.left = '50%';
+      head.style.top = '32%';
+      head.style.width = '120px';
+      head.style.height = '120px';
+      head.style.transform = 'translate(-50%, -50%)';
+      head.style.borderRadius = '50%';
+      head.style.background = 'radial-gradient(circle at 40% 35%, #b6caff 0%, #8097ff 35%, #4159cc 100%)';
+      head.style.border = '1px solid rgba(255,255,255,0.08)';
+      head.style.boxShadow = '0 20px 60px rgba(100,140,255,0.25)';
+
+      const body = document.createElement('div');
+      body.style.position = 'absolute';
+      body.style.left = '50%';
+      body.style.top = '58%';
+      body.style.width = '160px';
+      body.style.height = '180px';
+      body.style.transform = 'translate(-50%, -50%)';
+      body.style.borderRadius = '18px';
+      body.style.background = 'linear-gradient(180deg, #1e2430 0%, #2a3350 60%, #1b2132 100%)';
+      body.style.border = '1px solid rgba(255,255,255,0.06)';
+      body.style.boxShadow = '0 30px 80px rgba(156,109,255,0.25)';
+
+      const label = document.createElement('div');
+      label.textContent = `${model.name}`;
+      label.style.position = 'absolute';
+      label.style.left = '50%';
+      label.style.bottom = '18px';
+      label.style.transform = 'translateX(-50%)';
+      label.style.color = '#a8b2c1';
+      label.style.fontSize = '0.9rem';
+
+      figure.appendChild(head);
+      figure.appendChild(body);
+      figure.appendChild(label);
+      viewer.appendChild(figure);
+    }
+  </script>
 </body>
 </html>
