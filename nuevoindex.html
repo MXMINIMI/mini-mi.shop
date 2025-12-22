@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini‑Mi | Genera tu figura 3D kawaii</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body { font-family: system-ui, Segoe UI, Inter, Arial; margin: 0; padding: 24px; background: #0f1216; color: #e7ecf3; }
+    h1 { margin: 0 0 12px; font-size: 1.6rem; }
+    .card { background: #171b21; border: 1px solid #242a33; border-radius: 12px; padding: 16px; max-width: 880px; margin: 0 auto 18px; }
+    .btn { background: #1a2029; color: #e7ecf3; border: 1px solid #2a3240; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+    .btn.primary { background: linear-gradient(90deg, #5c9dff 0%, #9c6dff 100%); color: #0c0f14; border: none; }
+    model-viewer { width: 100%; height: 460px; background: #0f1216; border: 1px solid #242a33; border-radius: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Mini‑Mi | Genera tu figura 3D kawaii desde una foto</h1>
+    <input type="file" id="foto" accept="image/png, image/jpeg" />
+    <button class="btn primary" id="btnGenerar">Generar figura 3D</button>
+    <p id="estado"></p>
+
+    <model-viewer id="visor" src="" alt="Mini‑Mi 3D kawaii"
+      auto-rotate camera-controls exposure="0.9" shadow-intensity="1">
+    </model-viewer>
+  </div>
+
+  <script>
+    const foto = document.getElementById('foto');
+    const btnGenerar = document.getElementById('btnGenerar');
+    const estado = document.getElementById('estado');
+    const visor = document.getElementById('visor');
+
+    btnGenerar.addEventListener('click', async () => {
+      const file = foto.files && foto.files[0];
+      if (!file) {
+        estado.textContent = 'Por favor sube una foto (JPG/PNG).';
+        return;
+      }
+
+      estado.textContent = 'Procesando foto...';
+
+      const formData = new FormData();
+      formData.append('foto', file);
+
+      const resp = await fetch('/api/reconstruct', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await resp.json();
+      if (data.success) {
+        estado.textContent = 'Figura kawaii generada con éxito.';
+        visor.src = data.modelUrl;
+      } else {
+        estado.textContent = 'Error al generar el modelo.';
+      }
+    });
+  </script>
+</body>
+</html>
